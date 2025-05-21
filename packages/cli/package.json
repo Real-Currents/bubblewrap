@@ -29,8 +29,8 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@bubblewrap/core": "^1.21.0",
-    "@bubblewrap/validator": "^1.20.0",
+    "@bubblewrap/core": "file:../core",
+    "@bubblewrap/validator": "file:../validator",
     "@types/cli-progress": "^3.7.0",
     "@types/color": "^3.0.0",
     "@types/inquirer": "^6.5.0",
