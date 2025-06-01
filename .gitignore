@@ -7,3 +7,11 @@ dist
 **/node_modules
 **/dist
 lerna-debug.log
+
+# secret or sensitive files
+*.keystore
+CLAUDE.md
+
+# projects
+threejs-portal-effect/
+threejs-portal-effect_meta/

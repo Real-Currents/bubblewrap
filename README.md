@@ -14,12 +14,47 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-# Bubblewrap
+Bubblewrap
+==========
 [![Node CI Status](https://github.com/GoogleChromeLabs/bubblewrap/workflows/Node%20CI/badge.svg)](https://github.com/GoogleChromeLabs/bubblewrap/actions?query=workflow%3A%22Node+CI%22)
 
 Bubblewrap is a set of tools and libraries designed to help developers to create, build and update
 projects for Android Applications that launch Progressive Web App (PWA) using
 [Trusted Web Activity (TWA)](https://developer.chrome.com/docs/android/trusted-web-activity/).
+
+<hr />
+
+
+## My notes
+
+Bubblewrap's keystore generation DOES NOT WORK. Use this instead:```
+keytool -genkey -v -keystore android.keystore -alias android -keyalg RSA -keysize 2048 -validity 10000
+```
+
+JDK and Android SDK are stored at these respective paths:
+```
+? Do you want Bubblewrap to install the JDK (recommended)?
+  (Enter "No" to use your own JDK 17 installation) Yes
+Downloading JDK 17 to ~/.bubblewrap/jdk
+Downloading the JDK 17 Sources...
+ >> [████████████████████████████████████████] 100% | 174793k of 174783k
+Decompressing the JDK 17 Sources...
+Downloading the JDK 17 Binaries...
+ >> [████████████████████████████████████████] 100% | 187887k of 187887k
+Decompressing the JDK 17 Binaries...
+Extracting ~/.bubblewrap/jdk/OpenJDK17U-jdk_x64_linux_hotspot_17.0.11_9.tar.gz to ~/.bubblewrap/jdk
+? Do you want Bubblewrap to install the Android SDK (recommended)?
+  (Enter "No" to use your own Android SDK installation) Yes
+? Do you agree to the Android SDK terms and conditions at https://developer.android.com/studio/terms.html? Yes
+Downloading Android SDK to ~/.bubblewrap/android_sdk
+Downloading the Android SDK...
+ >> [████████████████████████████████████████] 100% | 84504k of 84504k
+Decompressing the Android SDK...
+
+```
+
+<hr />
+
 
 ## Requirements
 - [Node.js](https://nodejs.org/en/) 14.15.0 or above
