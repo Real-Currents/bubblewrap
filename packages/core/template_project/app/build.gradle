@@ -1,3 +1,4 @@
+// Copyright (c) Meta Platforms, Inc. and affiliates.
 /*
  * Copyright 2019 Google Inc.
  *
@@ -51,11 +52,20 @@ def twaManifest = [
 ]
 
 android {
-    compileSdkVersion 33
+    <% if (isMetaQuest) { %>
+        compileSdkVersion 32
+    <% } else { %>
+        compileSdkVersion 35
+    <% } %>
+    namespace "<%= packageId %>"
     defaultConfig {
         applicationId "<%= packageId %>"
         minSdkVersion <%= minSdkVersion %>
-        targetSdkVersion 33
+        <% if (isMetaQuest) { %>
+            targetSdkVersion 32
+        <% } else { %>
+            targetSdkVersion 35
+        <% } %>
         versionCode <%= appVersionCode %>
         versionName "<%= appVersionName %>"
 
@@ -74,6 +84,11 @@ android {
             // is used by Chrome OS and Meta Quest to open the Web version of the PWA instead of
             // the TWA, as it will probably give a better user experience for non-mobile devices.
             resValue "string", "webManifestUrl", '<%= webManifestUrl %>'
+        <% } %>
+
+        <% if (horizonOSAppMode) { %>
+            // This is used by Meta Quest.
+            resValue "string", "horizonOSAppMode", '<%= horizonOSAppMode %>'
         <% } %>
 
         <% if (fullScopeUrl) { %>
@@ -110,13 +125,13 @@ android {
         // compile. If not set, the navigation bar color defaults to #000000 - black.
         resValue "color", "navigationColorDark", twaManifest.navigationColorDark
 
-        // This attribute sets the navbar divider color for the TWA. It can be either 
-        // set here or in `res/values/colors.xml`. Setting in both places is an error and the app 
+        // This attribute sets the navbar divider color for the TWA. It can be either
+        // set here or in `res/values/colors.xml`. Setting in both places is an error and the app
         // will not compile. If not set, the divider color defaults to #00000000 - transparent.
         resValue "color", "navigationDividerColor", twaManifest.navigationDividerColor
 
-        // This attribute sets the dark navbar divider color for the TWA. It can be either 
-        // set here or in `res/values/colors.xml`. Setting in both places is an error and the 
+        // This attribute sets the dark navbar divider color for the TWA. It can be either
+        // set here or in `res/values/colors.xml`. Setting in both places is an error and the
         //app will not compile. If not set, the divider color defaults to #000000 - black.
         resValue "color", "navigationDividerColorDark", twaManifest.navigationDividerColorDark
 

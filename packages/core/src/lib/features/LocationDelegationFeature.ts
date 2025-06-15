@@ -1,3 +1,4 @@
+// Portions (c) Meta Platforms, Inc. and affiliates.
 /*
  * Copyright 2020 Google Inc. All Rights Reserved.
  *
@@ -23,12 +24,12 @@ export type LocationDelegationConfig = {
 export class LocationDelegationFeature extends EmptyFeature {
   constructor() {
     super('locationDelegation');
-    this.buildGradle.dependencies.push('com.google.androidbrowserhelper:locationdelegation:1.1.1');
+    this.buildGradle.dependencies.push('com.meta.androidbrowserhelper:locationdelegation:1.1.1');
 
     this.androidManifest.components.push(`<activity android:name=
-        "com.google.androidbrowserhelper.locationdelegation.PermissionRequestActivity"/>`);
+        "com.meta.androidbrowserhelper.locationdelegation.PermissionRequestActivity"/>`);
 
-    this.delegationService.imports.push('com.google.androidbrowserhelper.locationdelegation' +
+    this.delegationService.imports.push('com.meta.androidbrowserhelper.locationdelegation' +
         '.LocationDelegationExtraCommandHandler');
     this.delegationService.onCreate =
         'registerExtraCommandHandler(new LocationDelegationExtraCommandHandler());';

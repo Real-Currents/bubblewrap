@@ -62,9 +62,11 @@ export interface WebManifestJson {
   scope?: string;
   display?: WebManifestDisplayMode;
   theme_color?: string;
+  theme_color_dark?: string;
   background_color?: string;
   icons?: Array<WebManifestIcon>;
   shortcuts?: Array<WebManifestShortcutJson>;
   share_target?: ShareTarget;
   orientation?: OrientationLock;
+  additional_trusted_origins?: string[];
 }

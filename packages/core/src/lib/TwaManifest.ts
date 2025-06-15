@@ -1,3 +1,4 @@
+// Copyright (c) Meta Platforms, Inc. and affiliates.
 /*
  * Copyright 2019 Google Inc. All Rights Reserved.
  *
@@ -26,6 +27,8 @@ import {ShortcutInfo} from './ShortcutInfo';
 import {AppsFlyerConfig} from './features/AppsFlyerFeature';
 import {LocationDelegationConfig} from './features/LocationDelegationFeature';
 import {PlayBillingConfig} from './features/PlayBillingFeature';
+import {HorizonBillingConfig} from './features/HorizonBillingFeature';
+import {HorizonPlatformSDKConfig} from './features/HorizonPlatformSDKFeature';
 import {FirstRunFlagConfig} from './features/FirstRunFlagFeature';
 import {ArCoreConfig} from './features/ArCoreFeature';
 
@@ -39,7 +42,7 @@ const SHORT_NAME_MAX_SIZE = 12;
 const MIN_NOTIFICATION_ICON_SIZE = 48;
 
 // Supported display modes for TWA
-const DISPLAY_MODE_VALUES = ['standalone', 'fullscreen', 'fullscreen-sticky'];
+const DISPLAY_MODE_VALUES = ['standalone', 'minimal-ui', 'fullscreen', 'fullscreen-sticky'];
 export type DisplayMode = typeof DISPLAY_MODE_VALUES[number];
 export const DisplayModes: DisplayMode[] = [...DISPLAY_MODE_VALUES];
 
@@ -61,6 +64,15 @@ export function asOrientation(input?: string): Orientation | null {
   return ORIENTATION_VALUES.includes(input) ? input as Orientation : null;
 }
 
+// Supported launch modes for TWA on Meta Quest
+const HORIZONOS_APP_MODE_VALUES = ['immersive'];
+export type HorizonOSAppMode = typeof HORIZONOS_APP_MODE_VALUES[number];
+export const HorizonOsAppModes: HorizonOSAppMode[] = [...HORIZONOS_APP_MODE_VALUES];
+
+export function asHorizonOSAppMode(input: string): HorizonOSAppMode | null {
+  return HORIZONOS_APP_MODE_VALUES.includes(input) ? input as HorizonOSAppMode : null;
+}
+
 // Default values used on the Twa Manifest
 const DEFAULT_SPLASHSCREEN_FADEOUT_DURATION = 300;
 const DEFAULT_APP_NAME = 'My TWA';
@@ -72,12 +84,13 @@ const DEFAULT_NAVIGATION_DIVIDER_COLOR = '#00000000';
 const DEFAULT_BACKGROUND_COLOR = '#FFFFFF';
 const DEFAULT_APP_VERSION_CODE = 1;
 const DEFAULT_APP_VERSION_NAME = DEFAULT_APP_VERSION_CODE.toString();
-const DEFAULT_MIN_SDK_VERSION = 19;
+const DEFAULT_MIN_SDK_VERSION = 21;
 const DEFAULT_SIGNING_KEY_PATH = './android.keystore';
 const DEFAULT_SIGNING_KEY_ALIAS = 'android';
 const DEFAULT_ENABLE_NOTIFICATIONS = true;
 const DEFAULT_GENERATOR_APP_NAME = 'unknown';
 const DEFAULT_ORIENTATION = 'default';
+const DEFAULT_HORIZONOS_APP_MODE = 'immersive';
 
 export type FallbackType = 'customtabs' | 'webview';
 
@@ -85,6 +98,8 @@ type Features = {
   appsFlyer?: AppsFlyerConfig;
   locationDelegation?: LocationDelegationConfig;
   playBilling?: PlayBillingConfig;
+  horizonBilling?: HorizonBillingConfig;
+  horizonPlatformSDK?: HorizonPlatformSDKConfig;
   firstRunFlag?: FirstRunFlagConfig;
   arCore?: ArCoreConfig;
 };
@@ -111,7 +126,9 @@ type alphaDependencies = {
  * navbar divider.
  * backgroundColor: '<%= backgroundColor %>', // The color used for the splash screen background.
  * enableNotifications: false, // Set to true to enable notification delegation.
+ * enableMicrophone: false, // Set to true to enable microphone permission.
  * enableSiteSettingsShortcut: true, // Set to false to disable the shortcut into site settings.
+ * enableXRScene: false, // Set to true to enable the XR Scene (USE_SCENE) permission.
  * // Add shortcuts for your app here. Every shortcut must include the following fields:
  * // - name: String that will show up in the shortcut.
  * // - shortName: Shorter string used if |name| is too long.
@@ -132,6 +149,7 @@ type alphaDependencies = {
  */
 export class TwaManifest {
   packageId: string;
+  applicationId: number;
   host: string;
   name: string;
   launcherName: string;
@@ -144,6 +162,8 @@ export class TwaManifest {
   navigationDividerColorDark: Color;
   backgroundColor: Color;
   enableNotifications: boolean;
+  enableMicrophone: boolean;
+  enableXRScene: boolean;
   startUrl: string;
   iconUrl: string | undefined;
   maskableIconUrl: string | undefined;
@@ -161,6 +181,7 @@ export class TwaManifest {
   enableSiteSettingsShortcut: boolean;
   isChromeOSOnly: boolean;
   isMetaQuest: boolean;
+  horizonOSAppMode: HorizonOSAppMode;
   fullScopeUrl?: URL;
   minSdkVersion: number;
   shareTarget?: ShareTarget;
@@ -174,6 +195,7 @@ export class TwaManifest {
 
   constructor(data: TwaManifestJson) {
     this.packageId = data.packageId;
+    this.applicationId = data.applicationId;
     this.host = data.host;
     this.name = data.name;
     // Older manifests may not have this field:
@@ -190,6 +212,8 @@ export class TwaManifest {
       DEFAULT_NAVIGATION_COLOR);
     this.backgroundColor = new Color(data.backgroundColor);
     this.enableNotifications = data.enableNotifications;
+    this.enableMicrophone = data.enableMicrophone != undefined ? data.enableMicrophone : false;
+    this.enableXRScene = data.enableXRScene != undefined ? data.enableXRScene : false;
     this.startUrl = data.startUrl;
     this.iconUrl = data.iconUrl;
     this.maskableIconUrl = data.maskableIconUrl;
@@ -211,6 +235,7 @@ export class TwaManifest {
       data.enableSiteSettingsShortcut : true;
     this.isChromeOSOnly = data.isChromeOSOnly != undefined ? data.isChromeOSOnly : false;
     this.isMetaQuest = data.isMetaQuest != undefined ? data.isMetaQuest : false;
+    this.horizonOSAppMode = asHorizonOSAppMode(data.horizonOSAppMode!)|| DEFAULT_HORIZONOS_APP_MODE;
     this.fullScopeUrl = data.fullScopeUrl ? new URL(data.fullScopeUrl) : undefined;
     this.minSdkVersion = data.minSdkVersion || DEFAULT_MIN_SDK_VERSION;
     this.shareTarget = data.shareTarget;
@@ -314,13 +339,14 @@ export class TwaManifest {
 
     const twaManifest = new TwaManifest({
       packageId: generatePackageId(webManifestUrl.host) || '',
+      applicationId: 0,
       host: webManifestUrl.host,
       name: webManifest['name'] || webManifest['short_name'] || DEFAULT_APP_NAME,
       launcherName: webManifest['short_name'] ||
         webManifest['name']?.substring(0, SHORT_NAME_MAX_SIZE) || DEFAULT_APP_NAME,
       display: asDisplayMode(webManifest['display']!) || DEFAULT_DISPLAY_MODE,
       themeColor: webManifest['theme_color'] || DEFAULT_THEME_COLOR,
-      themeColorDark: DEFAULT_THEME_COLOR_DARK,
+      themeColorDark: webManifest['theme_color_dark'] || DEFAULT_THEME_COLOR_DARK,
       navigationColor: DEFAULT_NAVIGATION_COLOR,
       navigationColorDark: DEFAULT_NAVIGATION_COLOR,
       navigationDividerColor: DEFAULT_NAVIGATION_DIVIDER_COLOR,
@@ -343,6 +369,7 @@ export class TwaManifest {
       shareTarget: TwaManifest.verifyShareTarget(webManifestUrl, webManifest.share_target),
       orientation: asOrientation(webManifest.orientation) || DEFAULT_ORIENTATION,
       fullScopeUrl: fullScopeUrl.toString(),
+      additionalTrustedOrigins: webManifest.additional_trusted_origins || [],
     });
     return twaManifest;
   }
@@ -495,6 +522,8 @@ export class TwaManifest {
           oldTwaManifest.fullScopeUrl?.toString(), fullScopeUrl.toString()),
       themeColor: this.getNewFieldValue('themeColor', fieldsToIgnore,
           oldTwaManifest.themeColor.hex(), webManifest['theme_color']!),
+      themeColorDark: this.getNewFieldValue('themeColorDark', fieldsToIgnore,
+          oldTwaManifest.themeColorDark.hex(), webManifest['theme_color_dark']!),
       backgroundColor: this.getNewFieldValue('backgroundColor', fieldsToIgnore,
           oldTwaManifest.backgroundColor.hex(), webManifest['background_color']!),
       startUrl: this.getNewFieldValue('startUrl', fieldsToIgnore, oldTwaManifest.startUrl,
@@ -513,6 +542,7 @@ export class TwaManifest {
  */
 export interface TwaManifestJson {
   packageId: string;
+  applicationId: number;
   host: string;
   name: string;
   launcherName?: string; // Older Manifests may not have this field.
@@ -525,6 +555,8 @@ export interface TwaManifestJson {
   navigationDividerColorDark?: string;
   backgroundColor: string;
   enableNotifications: boolean;
+  enableMicrophone?: boolean; // Older Manifests may not have this field.
+  enableXRScene?: boolean; // Older Manifests may not have this field.
   startUrl: string;
   iconUrl?: string;
   maskableIconUrl?: string;
@@ -541,6 +573,8 @@ export interface TwaManifestJson {
     appsFlyer?: AppsFlyerConfig;
     locationDelegation?: LocationDelegationConfig;
     playBilling?: PlayBillingConfig;
+    horizonBilling?: HorizonBillingConfig;
+    horizonPlatformSDK?: HorizonPlatformSDKConfig;
     firstRunFlag?: FirstRunFlagConfig;
     arCore?: ArCoreConfig;
   };
@@ -550,6 +584,7 @@ export interface TwaManifestJson {
   enableSiteSettingsShortcut?: boolean;
   isChromeOSOnly?: boolean;
   isMetaQuest?: boolean; // Older Manifests may not have this field.
+  horizonOSAppMode?: string; // Older Manifests may not have this field.
   fullScopeUrl?: string; // Older Manifests may not have this field.
   minSdkVersion?: number; // Older Manifests may not have this field.
   shareTarget?: ShareTarget;

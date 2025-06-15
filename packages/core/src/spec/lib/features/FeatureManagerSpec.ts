@@ -1,3 +1,4 @@
+// Portions (c) Meta Platforms, Inc. and affiliates.
 /*
  * Copyright 2020 Google Inc. All Rights Reserved.
  *
@@ -19,6 +20,7 @@ import {AppsFlyerConfig, AppsFlyerFeature} from '../../../lib/features/AppsFlyer
 import {FirstRunFlagConfig, FirstRunFlagFeature} from '../../../lib/features/FirstRunFlagFeature';
 import {LocationDelegationFeature} from '../../../lib/features/LocationDelegationFeature';
 import {PlayBillingFeature} from '../../../lib/features/PlayBillingFeature';
+import {HorizonBillingFeature} from '../../../lib/features/HorizonBillingFeature';
 import {TwaManifest} from '../../../lib/TwaManifest';
 import {Feature} from '../../../lib/features/Feature';
 
@@ -75,7 +77,7 @@ describe('FeatureManager', () => {
       expect(features.applicationClass.onCreate).toEqual([]);
       expect(features.applicationClass.variables).toEqual([]);
       expect(features.buildGradle.dependencies).toContain(
-          'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0');
+          'com.meta.androidbrowserhelper:androidbrowserhelper:2.5.0');
       expect(features.buildGradle.repositories).toEqual(emptySet);
       expect(features.launcherActivity.imports).toEqual(emptySet);
       expect(features.launcherActivity.launchUrl).toEqual([]);
@@ -90,7 +92,7 @@ describe('FeatureManager', () => {
       } as TwaManifest;
       const features = new FeatureManager(manifest);
       expect(features.buildGradle.dependencies).toContain(
-          'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0');
+          'com.meta.androidbrowserhelper:androidbrowserhelper:2.5.0');
     });
 
     it('Adds INTERNET permission when WebView fallback is enabled', () => {
@@ -179,6 +181,33 @@ describe('FeatureManager', () => {
 
       expect(features.delegationService.onCreate!)
           .toContain(playBillingFeature.delegationService.onCreate!);
+    });
+
+    it('Enables the Horizon Billing feature', () => {
+      const manifest = {
+        features: {
+          horizonBilling: {
+            enabled: true,
+          },
+        },
+        alphaDependencies: {
+          enabled: true,
+        },
+      } as TwaManifest;
+
+      const horizonBillingFeature = new HorizonBillingFeature();
+      const features = new FeatureManager(manifest);
+
+      horizonBillingFeature.androidManifest.components.forEach((component) => {
+        expect(features.androidManifest.components).toContain(component);
+      });
+
+      horizonBillingFeature.delegationService.imports.forEach((imp) => {
+        expect(features.delegationService.imports).toContain(imp);
+      });
+
+      expect(features.delegationService.onCreate!)
+          .toContain(horizonBillingFeature.delegationService.onCreate!);
     });
   });
 });

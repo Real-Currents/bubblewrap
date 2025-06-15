@@ -1,3 +1,4 @@
+// Copyright (c) Meta Platforms, Inc. and affiliates.
 /*
  * Copyright 2019 Google Inc. All Rights Reserved.
  *
@@ -25,7 +26,7 @@ import {JarSigner} from './lib/jdk/JarSigner';
 import {JdkHelper} from './lib/jdk/JdkHelper';
 import {KeyTool} from './lib/jdk/KeyTool';
 import {TwaManifest, DisplayModes, DisplayMode, asDisplayMode, Orientation, Orientations,
-  asOrientation, SigningKeyInfo, Fingerprint}
+  asOrientation, SigningKeyInfo, Fingerprint, HorizonOSAppMode, HorizonOsAppModes, asHorizonOSAppMode}
   from './lib/TwaManifest';
 import {TwaGenerator} from './lib/TwaGenerator';
 import {DigitalAssetLinks} from './lib/DigitalAssetLinks';
@@ -62,4 +63,7 @@ export {
   PlayStoreTrack,
   asPlayStoreTrack,
   PlayStoreTracks,
+  HorizonOSAppMode,
+  HorizonOsAppModes,
+  asHorizonOSAppMode,
 };

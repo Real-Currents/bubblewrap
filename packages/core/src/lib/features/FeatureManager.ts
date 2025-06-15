@@ -1,3 +1,4 @@
+// Portions (c) Meta Platforms, Inc. and affiliates.
 /*
  * Copyright 2020 Google Inc. All Rights Reserved.
  *
@@ -18,14 +19,16 @@ import {Feature, Metadata} from './Feature';
 import {AppsFlyerFeature} from './AppsFlyerFeature';
 import {LocationDelegationFeature} from './LocationDelegationFeature';
 import {PlayBillingFeature} from './PlayBillingFeature';
+import {HorizonBillingFeature} from './HorizonBillingFeature';
+import {HorizonPlatformSDKFeature} from './HorizonPlatformSDKFeature';
 import {TwaManifest} from '../TwaManifest';
 import {FirstRunFlagFeature} from './FirstRunFlagFeature';
 import {Log, ConsoleLog} from '../Log';
 import {ArCoreFeature} from './ArCoreFeature';
 
 const ANDROID_BROWSER_HELPER_VERSIONS = {
-  stable: 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0',
-  alpha: 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0',
+  stable: 'com.meta.androidbrowserhelper:androidbrowserhelper:2.5.0',
+  alpha: 'com.meta.androidbrowserhelper:androidbrowserhelper:2.5.0',
 };
 
 /**
@@ -73,6 +76,19 @@ export class FeatureManager {
         log.error('Skipping PlayBillingFeature. '+
             'Enable alphaDependencies to add PlayBillingFeature.');
       }
+    }
+
+    if (twaManifest.features.horizonBilling?.enabled) {
+      if (twaManifest.alphaDependencies?.enabled) {
+        this.addFeature(new HorizonBillingFeature());
+      } else {
+        log.error('Skipping HorizonBillingFeature. '+
+            'Enable alphaDependencies to add HorizonBillingFeature.');
+      }
+    }
+
+    if (twaManifest.features.horizonPlatformSDK?.enabled) {
+      this.addFeature(new HorizonPlatformSDKFeature());
     }
 
     if (twaManifest.features.appsFlyer?.enabled) {

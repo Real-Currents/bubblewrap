@@ -1,3 +1,4 @@
+// Portions (c) Meta Platforms, Inc. and affiliates.
 /*
  * Copyright 2020 Google Inc.
  *
@@ -25,7 +26,7 @@ import android.os.Bundle;
 <% } %>
 
 public class LauncherActivity
-        extends com.google.androidbrowserhelper.trusted.LauncherActivity {
+        extends com.meta.androidbrowserhelper.trusted.LauncherActivity {
     <% for(const variable of launcherActivity.variables) { %>
         <%= variable %>
     <% } %>

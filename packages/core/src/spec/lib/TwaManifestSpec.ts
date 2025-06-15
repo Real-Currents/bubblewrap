@@ -186,8 +186,6 @@ describe('TwaManifest', () => {
 
     it('Replaces unsupported display modes with `standalone`', () => {
       const manifestUrl = new URL('https://pwa-directory.com/manifest.json');
-      expect(TwaManifest.fromWebManifestJson(manifestUrl, {display: 'minimal-ui'}).display)
-          .toBe('standalone');
       expect(TwaManifest.fromWebManifestJson(manifestUrl, {display: 'browser'}).display)
           .toBe('standalone');
     });
@@ -219,6 +217,8 @@ describe('TwaManifest', () => {
         },
         splashScreenFadeOutDuration: 300,
         enableNotifications: true,
+        enableMicrophone: true,
+        enableXRScene: true,
         shortcuts: [{name: 'name', shortName: 'shortName', url: '/', chosenIconUrl: 'icon.png'}],
         webManifestUrl: 'https://pwa-directory.com/manifest.json',
         generatorApp: 'test',
@@ -264,6 +264,8 @@ describe('TwaManifest', () => {
       expect(twaManifest.serviceAccountJsonFile).toEqual(twaManifestJson.serviceAccountJsonFile);
       expect(twaManifest.additionalTrustedOrigins).toEqual(['test.com']);
       expect(twaManifest.retainedBundles).toEqual([3, 4, 5]);
+      expect(twaManifest.enableMicrophone).toEqual(true);
+      expect(twaManifest.enableXRScene).toEqual(true);
     });
 
     it('Sets correct default values for optional fields', () => {
@@ -333,11 +335,11 @@ describe('TwaManifest', () => {
     it('Returns display mode if it is supported', () => {
       expect(asDisplayMode('standalone')).toBe('standalone');
       expect(asDisplayMode('fullscreen')).toBe('fullscreen');
+      expect(asDisplayMode('minimal-ui')).toBe('minimal-ui');
     });
 
     it('Returns null for unsupported display modes', () => {
       expect(asDisplayMode('browser')).toBeNull();
-      expect(asDisplayMode('minimal-ui')).toBeNull();
       expect(asDisplayMode('bogus')).toBeNull();
       expect(asDisplayMode('')).toBeNull();
     });
@@ -359,6 +361,7 @@ describe('TwaManifest', () => {
       };
       const twaManifest = new TwaManifest({
         'packageId': 'id',
+        'applicationId': 0,
         'host': 'host',
         'name': 'name',
         'launcherName': 'name',
@@ -371,6 +374,8 @@ describe('TwaManifest', () => {
         'navigationDividerColorDark': '#000000',
         'backgroundColor': '#FFFFFF',
         'enableNotifications': false,
+        'enableMicrophone': false,
+        'enableXRScene': false,
         // The start_urls are different, but since they both resolve the same relative
         // to the host url, nothing changes.
         'startUrl': '/',
@@ -420,6 +425,7 @@ describe('TwaManifest', () => {
       };
       const twaManifest = new TwaManifest({
         'packageId': 'id',
+        'applicationId': 0,
         'host': 'host',
         'name': 'name',
         'launcherName': 'name',
@@ -432,6 +438,8 @@ describe('TwaManifest', () => {
         'navigationDividerColorDark': '#000000',
         'backgroundColor': '#FFFFFF',
         'enableNotifications': false,
+        'enableMicrophone': false,
+        'enableXRScene': false,
         // The start_urls are different, but since they both resolve the same relative
         // to the host url, nothing changes.
         'startUrl': '/',

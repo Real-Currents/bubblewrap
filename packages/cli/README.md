@@ -32,16 +32,16 @@ external dependencies. This is the recommended setup, but it's possible to
 
 ## Container
 
-As an alternative to running the cli on your machine with Node.js directly you can use this 
+As an alternative to running the cli on your machine with Node.js directly you can use this
 container image which got the cli and all dependencies pre-installed. To use the cli run
-`docker run --rm -ti ghcr.io/googlechromelabs/bubblewrap:latest [cmd]` as you would normally 
+`docker run --rm -ti ghcr.io/googlechromelabs/bubblewrap:latest [cmd]` as you would normally
 use `bubblewrap [cmd]`.
 
 ## Quickstart Guide
 
 ### Installing Bubblewrap
 
-```shell
+```bash
 npm i -g @bubblewrap/cli
 ```
 
@@ -53,7 +53,7 @@ can create different kinds of problems and should be avoided (see
 ### Initializing an Android Project
 Generate an Android project from an existing Web Manifest:
 
-```shell
+```bash
 bubblewrap init --manifest https://my-twa.com/manifest.json
 ```
 
@@ -70,12 +70,13 @@ and built using [Android Studio](https://developer.android.com/studio/). Please,
 applications using Android Studio.
 
 ### Building the Android Project
-```shell
+
+```bash
 bubblewrap build
 ```
 
 When building the project for the first time, the Android Build Tools will need to be installed.
-The tool will inkove the installation process for the build tools. Make sure to read and accept
+The tool will invoke the installation process for the build tools. Make sure to read and accept
 the license agreement before proceeding. This process will install the other required files inside the `directory/decompressed` root directory of the android CLI package.
 
 As a result of the build step, the tool will generate a signed APK (`app-release-signed.apk`)
@@ -232,9 +233,9 @@ Manages the list of fingerprints used to generate the Digital Asset Links file f
 
 Usage:
 
-```
+```bash
 bubblewrap fingerprint [subcommand]
-``` 
+```
 
 Global flags:
   - `--manifest=<manifest>`: path to the Trusted Web Activity configuration.',
@@ -283,37 +284,46 @@ Flags:
 
 ## `play`
 
-:warning: This is an experimental feature.
-
 Manages the artifacts for your Google Play Project.
+
+Usage:
+
+```bash
+bubblewrap play [subcommand]
+```
 
 **Note**:
 These feature requires a service account file to work correctly. Please see [this documentation](https://github.com/chromeos/pwa-play-billing#setup-a-service-account) for setting up a service account.
 
-The following options can be applied to all of the features commands:
-  - `--serviceAccountJsonFile`: sets the service account json file location in the twa-manifest.
+Global flags (can be applied to all of the features commands):
+  - `--serviceAccountFile`: sets the service account json file location in the twa-manifest.
   - `--manifest`: specifies the manifest file to use if not in the current directory.
+
 
 ### Subcommands
 
-#### `playPublish`
+#### `publish`
+
+Publishes provided bundle to the Play Store.
 
 Usage:
 
-```
-bubblewrap playPublish --serviceAccountFile="/path/to/service/account.json" --track="beta" --appBundleLocation="/home/appBundle.aab"
+```bash
+bubblewrap play publish --serviceAccountFile="/path/to/service/account.json" --track="beta" --appBundleLocation="/home/appBundle.aab"
 ```
 
 Options:
   - `--track`: publishes the prebuilt file to the Google Play Store specificed track (defaults to internal track).
   - `--appBundleLocation`: specifies the location of the appbundle to upload to Google Play (defaults to current directory).
 
-#### `playRetain`
+#### `retain`
+
+:warning: This is an experimental feature.
 
 Usage:
 
-```
-bubblewrap playRetain --add=86
+```bash
+bubblewrap play retain --add=86
 ```
 
 Options:
@@ -321,12 +331,12 @@ Options:
   - `--remove`: removes the specified bundle if no longer relevant.
   - `--list`: shows a list of existing retained bundles in the twa-manifest.json, not what is listed as retained from play.
 
-#### `playVersionCheck`
+#### `versionCheck`
 
 Usage:
 
-```
-bubblewrap playVersionCheck --serviceAccountFile="/path/to/service/account.json"  --targetDirectory="/home/my/app/dir"
+```bash
+bubblewrap play versionCheck --serviceAccountFile="/path/to/service/account.json"  --targetDirectory="/home/my/app/dir"
 ```
 
 Options:
@@ -351,7 +361,9 @@ Fields:
 |backgroundColor|string|true|Color used for the splash screen background.|
 |display|`'standalone'` \| `'fullscreen'` \| `'fullscreen-sticky'`|false|The initial [display mode](https://developer.mozilla.org/en-US/docs/Web/Manifest/display) for the Android application. `fullscreen-sticky` corresponds to Android's [Immersive Sticky](https://developer.android.com/training/system-ui/immersive#sticky-immersive). Defaults to `standalone`.|
 |enableNotifications|boolean|true|Set to `true` to enable notification delegation.|
+|enableMicrophone|boolean|false|Adds handling of microphone permission request.|
 |enableSiteSettingsShortcut|boolean|false|Adds a shortcut to the site settings in the application launcher. Defaults to `true`.|
+|enableXRScene|boolean|false|Adds handling of XR Scene (USE_SCENE) permission request.|
 |fallbackType|`'customtabs'` \| `'webview'`|false|Fallback strategy used when a browser that supports Trusted Web Activity is not available on the users device. Defaults to `'customtabs'`.|
 |features|[Features](#Features)|false|Enables optional features in the Android application. Read the [Features](#Features) section for details.|
 |fingerprints|[Fingerprint](#fingerprint)[]|false|List of fingerprints used to generate the Digital Asset Links file. Read the [Fingerprint](#fingerprint) section for details.|
@@ -404,7 +416,7 @@ Enables the [AppsFlyer SDK](https://support.appsflyer.com/hc/en-us/articles/3600
 
 #### LocationDelegationConfig
 
-Delegates the location permission dialog to the Android system, instead of showing the browser dialog. Recommended when the application requests the location permission, but not enabled by default as it includes additional dependencies in the application. 
+Delegates the location permission dialog to the Android system, instead of showing the browser dialog. Recommended when the application requests the location permission, but not enabled by default as it includes additional dependencies in the application.
 
 |Name|Type|Required|Description|
 |:--:|:--:|:------:|:---------:|
@@ -459,11 +471,11 @@ The Android Command line tools requires the correct version of the JDK to run. T
 conflicts with a JDK version that is already installed, Bubblewrap uses a JDK that can unzipped in
 a separate folder.
 
-Download a version of JDK 11 that is compatible with your OS from
-[AdoptOpenJDK](https://adoptopenjdk.net/releases.html?variant=openjdk11&jvmVariant=hotspot)
+Download a version of JDK 17 that is compatible with your OS from
+[Adoptium](https://adoptium.net/temurin/releases/?version=17&package=jdk)
 and extract it in its own folder.
 
-:warning: **Warning:** Using a version lower than 11 will make it impossible to compile the project and higher
+:warning: **Warning:** Using a version lower than 17 will make it impossible to compile the project and higher
 versions are incompatible with the Android command line tools.
 
 ### Get the Android command line tools

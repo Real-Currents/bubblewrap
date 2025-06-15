@@ -1,6 +1,6 @@
 {
   "name": "@bubblewrap/core",
-  "version": "1.21.0",
+  "version": "1.22.3",
   "description": "Core Library to generate, build and sign TWA projects",
   "engines": {
     "node": ">=14.15.0"
@@ -37,8 +37,8 @@
     "@types/color": "^3.0.0",
     "@types/extract-zip": "^1.6.2",
     "@types/gapi.client.androidpublisher": "^3.0.0",
-    "@types/inquirer": "^6.5.0",
-    "@types/lodash.template": "^4.5.0",
+    "@types/inquirer": "^9.0.7",
+    "@types/lodash": "^4.17.14",
     "@types/mime-types": "^2.1.0",
     "@types/node": "^12.20.1",
     "@types/node-fetch": "^2.5.10",
@@ -49,9 +49,9 @@
     "extract-zip": "^1.7.0",
     "fetch-h2": "^2.5.1",
     "googleapis": "^81.0.0",
-    "inquirer": "^7.3.3",
+    "inquirer": "^9.0.7",
     "jimp": "^0.22.7",
-    "lodash.template": "^4.5.0",
+    "lodash": "^4.17.21",
     "mime-types": "^2.1.28",
     "node-fetch": "^2.6.1",
     "tar": "^6.1.0",

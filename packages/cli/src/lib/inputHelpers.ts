@@ -1,3 +1,4 @@
+// Copyright (c) Meta Platforms, Inc. and affiliates.
 /*
  * Copyright 2019 Google Inc. All Rights Reserved.
  *
@@ -14,11 +15,11 @@
  *  limitations under the License.
  */
 
-import Color = require('color');
+import Color from 'color';
 import {URL} from 'url';
 import {isWebUri} from 'valid-url';
-import {Result, DisplayMode, asDisplayMode, asOrientation, Orientation, util}
-  from '@bubblewrap/core';
+import {Result, DisplayMode, asDisplayMode, asOrientation, Orientation, util, HorizonOSAppMode,
+  asHorizonOSAppMode} from '@bubblewrap/core';
 import {ValidateFunction} from './Prompt';
 import {enUS as messages} from './strings';
 import {domainToASCII} from 'url';
@@ -201,6 +202,22 @@ export async function validateDisplayMode(input: string): Promise<Result<Display
     return Result.error(new Error(messages.errorInvalidDisplayMode(input)));
   }
   return Result.ok(displayMode);
+}
+
+/**
+ * A {@link ValidateFunction} that receives a {@link string} as input and resolves to a
+ * {@link HorizonOSAppMode} when successful.
+ * @param {string} input a string to be converted to a {@link HorizonOSAppMode}.
+ * @returns {Result<HorizonOSAppMode, Error>} a result that resolves to a {@link HorizonOSAppMode} on
+ * success or {@link Error} on failure.
+ */
+export async function validateHorizonOSAppMode(input: string):
+  Promise<Result<HorizonOSAppMode, Error>> {
+  const horizonOSAppMode = asHorizonOSAppMode(input);
+  if (horizonOSAppMode === null) {
+    return Result.error(new Error(messages.errorInvalidDisplayMode(input)));
+  }
+  return Result.ok(horizonOSAppMode);
 }
 
 /**

@@ -1,3 +1,4 @@
+// Copyright (c) Meta Platforms, Inc. and affiliates.
 /*
  * Copyright 2019 Google Inc. All Rights Reserved.
  *
@@ -16,10 +17,12 @@
 
 import * as fs from 'fs';
 import {join, resolve} from 'path';
-import {Config, DisplayModes, JdkHelper, KeyTool, Orientations, TwaGenerator, TwaManifest}
+import {Config, DisplayModes, HorizonOsAppModes, JdkHelper, KeyTool, Orientations, TwaGenerator, TwaManifest}
   from '@bubblewrap/core';
 import {validateHost, validateColor, createValidateString, validateDisplayMode, validatePackageId,
-  validateImageUrl, validateOptionalImageUrl, validateInteger, validateOrientation}
+  validateImageUrl, validateOptionalImageUrl, validateInteger, validateOrientation,
+  validateHorizonOSAppMode
+}
   from '../inputHelpers';
 import {APP_NAME} from '../constants';
 import {Prompt, InquirerPrompt} from '../Prompt';
@@ -31,12 +34,16 @@ export interface InitArgs {
   directory?: string;
   chromeosonly?: boolean;
   metaquest?: boolean;
+  // temporary flag to set 2D OS App Mode before the functionality is ready for use.
+  flat?: boolean;
   alphaDependencies?: boolean;
 }
 
 async function confirmTwaConfig(twaManifest: TwaManifest, prompt: Prompt): Promise<TwaManifest> {
-  // Warn about the Google Play Family Policy
-  prompt.printMessage(messages.warnFamilyPolicy);
+  if (!twaManifest.isMetaQuest) {
+    // Warn about the Google Play Family Policy
+    prompt.printMessage(messages.warnFamilyPolicy);
+  }
 
   // Step 1/5 - Collect information on the Web App.
   prompt.printMessage(messages.messageWebAppDetails);
@@ -77,25 +84,32 @@ async function confirmTwaConfig(twaManifest: TwaManifest, prompt: Prompt): Promi
   );
   twaManifest.appVersionName = twaManifest.appVersionCode.toString();
 
-  twaManifest.display = await prompt.promptChoice(
-      messages.promptDisplayMode,
-      DisplayModes,
-      twaManifest.display,
-      validateDisplayMode,
-  );
+  if (twaManifest.horizonOSAppMode === 'immersive') {
+    twaManifest.display = 'standalone';
+    twaManifest.orientation = 'default';
+  } else {
+    twaManifest.display = await prompt.promptChoice(
+        messages.promptDisplayMode,
+        DisplayModes,
+        twaManifest.display,
+        validateDisplayMode,
+    );
 
-  twaManifest.orientation = await prompt.promptChoice(
-      messages.promptOrientation,
-      Orientations,
-      twaManifest.orientation,
-      validateOrientation,
-  );
+    twaManifest.orientation = await prompt.promptChoice(
+        messages.promptOrientation,
+        Orientations,
+        twaManifest.orientation,
+        validateOrientation,
+    );
+  }
 
-  twaManifest.themeColor = await prompt.promptInput(
-      messages.promptThemeColor,
-      twaManifest.themeColor.hex(),
-      validateColor,
-  );
+  if (!twaManifest.isMetaQuest) {
+    twaManifest.themeColor = await prompt.promptInput(
+        messages.promptThemeColor,
+        twaManifest.themeColor.hex(),
+        validateColor,
+    );
+  }
 
   // Step 3/5 Launcher Icons and Splash Screen.
   prompt.printMessage(messages.messageLauncherIconAndSplash);
@@ -137,18 +151,39 @@ async function confirmTwaConfig(twaManifest: TwaManifest, prompt: Prompt): Promi
   );
   twaManifest.monochromeIconUrl = monochromeIconUrl ? monochromeIconUrl.toString() : undefined;
 
-  const playBillingEnabled = await prompt.promptConfirm(messages.promptPlayBilling, false);
-  if (playBillingEnabled) {
-    twaManifest.alphaDependencies = {
-      enabled: true,
-    };
-
-    twaManifest.features = {
-      ...twaManifest.features,
-      playBilling: {
+  if (!twaManifest.isMetaQuest) {
+    const playBillingEnabled = await prompt.promptConfirm(messages.promptPlayBilling, false);
+    if (playBillingEnabled) {
+      twaManifest.alphaDependencies = {
         enabled: true,
-      },
-    };
+      };
+
+      twaManifest.features = {
+        ...twaManifest.features,
+        playBilling: {
+          enabled: true,
+        },
+      };
+    }
+  } else {
+    const horizonBillingEnabled = await prompt.promptConfirm(messages.promptHorizonBilling, false);
+    if (horizonBillingEnabled) {
+      twaManifest.applicationId = await prompt.promptInput(
+          messages.promptApplicationId,
+          twaManifest.applicationId.toString(),
+          validateInteger,
+      );
+      twaManifest.alphaDependencies = {
+        enabled: true,
+      };
+
+      twaManifest.features = {
+        ...twaManifest.features,
+        horizonBilling: {
+          enabled: true,
+        },
+      };
+    }
   }
 
   const locationDelegationEnabled =
@@ -160,6 +195,18 @@ async function confirmTwaConfig(twaManifest: TwaManifest, prompt: Prompt): Promi
         enabled: true,
       },
     };
+  }
+
+  if (twaManifest.isMetaQuest) {
+    const microphonePermissionEnabled = await prompt.promptConfirm(messages.promptMicrophonePermission, false);
+    if (microphonePermissionEnabled) {
+      twaManifest.enableMicrophone = true;
+    }
+
+    const xrScenePermissionEnabled = await prompt.promptConfirm(messages.promptXrScenePermission, false);
+    if (xrScenePermissionEnabled) {
+      twaManifest.enableXRScene = true;
+    }
   }
 
   // Step 5/5 Signing Key Information.
@@ -251,6 +298,23 @@ export async function init(
     twaManifest.minSdkVersion = 23;
     // Warn about increasing the minimum Android API Level
     prompt.printMessage(messages.warnIncreasingMinSdkVersion);
+    if (args.flat){
+      // Temporary until 2d app mode is available in store
+      twaManifest.horizonOSAppMode = '2d';
+    } else {
+        twaManifest.horizonOSAppMode = await prompt.promptChoice(
+          messages.promptHorizonOSAppMode,
+          HorizonOsAppModes,
+          twaManifest.horizonOSAppMode,
+          validateHorizonOSAppMode,
+      );
+    }
+    twaManifest.features = {
+      ...twaManifest.features,
+      horizonPlatformSDK: {
+        enabled: true,
+      },
+    };
   }
 
   if (args.alphaDependencies) {

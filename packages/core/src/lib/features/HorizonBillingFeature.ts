@@ -1,5 +1,6 @@
 /*
  * Copyright 2020 Google Inc. All Rights Reserved.
+ * Copyright 2024 Meta Inc. All Rights Reserved.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,35 +17,36 @@
 
 import {EmptyFeature} from './EmptyFeature';
 
-export type PlayBillingConfig = {
+export type HorizonBillingConfig = {
     enabled: boolean;
 }
 
-export class PlayBillingFeature extends EmptyFeature {
+export class HorizonBillingFeature extends EmptyFeature {
   constructor() {
-    super('playbilling');
+    super('horizonbilling');
 
-    this.buildGradle.dependencies.push('com.google.androidbrowserhelper:billing:1.0.0-alpha11');
+    this.buildGradle.dependencies.push('com.meta.androidbrowserhelper:horizonbilling:1.0.0-alpha11');
 
     this.androidManifest.components.push(`
         <activity
-            android:name="com.google.androidbrowserhelper.playbilling.provider.PaymentActivity"
+            android:name="com.meta.androidbrowserhelper.horizonbilling.provider.PaymentActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:configChanges="keyboardHidden|keyboard|orientation|screenLayout|screenSize"
             android:exported="true">
 
             <intent-filter>
                 <action android:name="org.chromium.intent.action.PAY" />
+                <category android:name="com.oculus.intent.category.VR" />
             </intent-filter>
 
             <meta-data
                 android:name="org.chromium.default_payment_method_name"
-                android:value="https://play.google.com/billing" />
+                android:value="https://quest.meta.com/billing" />
         </activity>
 
         <!-- This service checks who calls it at runtime. -->
         <service
-            android:name="com.google.androidbrowserhelper.playbilling.provider.PaymentService"
+            android:name="com.meta.androidbrowserhelper.horizonbilling.provider.PaymentService"
             android:exported="true" >
             <intent-filter>
                 <action android:name="org.chromium.intent.action.IS_READY_TO_PAY" />
@@ -52,8 +54,12 @@ export class PlayBillingFeature extends EmptyFeature {
         </service> `);
 
     this.delegationService.imports.push(
-        'com.google.androidbrowserhelper.playbilling.digitalgoods.DigitalGoodsRequestHandler');
+        'com.meta.androidbrowserhelper.horizonbilling.digitalgoods.DigitalGoodsRequestHandler');
     this.delegationService.onCreate =
         'registerExtraCommandHandler(new DigitalGoodsRequestHandler(getApplicationContext()));';
+    this.androidManifest.permissions.push(
+        'android.permission.INTERNET',
+        'android.permission.ACCESS_NETWORK_STATE',
+        'android.permission.ACCESS_WIFI_STATE');
   }
 }
